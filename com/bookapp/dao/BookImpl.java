@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.bookapp.bean.Book;
@@ -22,165 +23,234 @@ public class BookImpl implements BookInter{
        
 	@Override
 	public void addBook(Book book) {
-		Connection connection = ModelDAO.openConnection();
-		PreparedStatement st = null;
+		Connection connection = ModelDAO.openConnection(); //to get the connection object
+		PreparedStatement statement = null;
 		try {
-			st = connection.prepareStatement(insertBookQuery);
-			st.setString(1, book.getTitle());
-			st.setString(2, book.getAuthor());
-			st.setString(3, book.getCategory());
-			st.setInt(4, book.getBookid());
-			st.setInt(5, book.getPrice());
-			st.execute();
+			statement = connection.prepareStatement(insertBookQuery); //this returns prepared statement object
+			statement.setString(1, book.getTitle());
+			statement.setString(2, book.getAuthor());
+			statement.setString(3, book.getCategory());
+			statement.setInt(4, book.getBookId());
+			statement.setInt(5, book.getPrice());
+			statement.execute();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-//		st.execute();
-		
+		finally  {
+			if (statement != null)
+				try {
+					statement.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			ModelDAO.closeConnection();
+		}		
+				
 	}
 
 	@Override
 	public boolean deleteBook(int bookid) throws BookNotFoundException {
 		Connection connection = ModelDAO.openConnection();
-		PreparedStatement st = null;
+		PreparedStatement statement = null;
 		try  {
-			st = connection.prepareStatement(deleteBookQuery);
-			st.setInt(1, bookid);
-			st.execute();
+			statement = connection.prepareStatement(deleteBookQuery);
+			statement.setInt(1, bookid);
+			int count = statement.executeUpdate();
+			if (count == 0)
+				throw new BookNotFoundException("Book not found with this id");
 		}
 		catch (SQLException e)  {
 			e.printStackTrace();
 		}
-		return false;
+		finally  {
+			if (statement != null)
+				try {
+					statement.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			ModelDAO.closeConnection();
+		}
+		return true;
 	}
 
 	@Override
-	public Book getBookById(int bookid) throws BookNotFoundException {
+	public Book getBookById(int bookId) throws BookNotFoundException {
 		Connection connection = ModelDAO.openConnection();
-		PreparedStatement st = null;
+		PreparedStatement statement = null;
+		Book book = null;
 		try  {
-			st = connection.prepareStatement(getBookQuery);
-			st.setInt(1, bookid);
-			ResultSet rs = st.executeQuery();
+			statement = connection.prepareStatement(getBookQuery);
+			statement.setInt(1, bookId);
+			ResultSet rs = statement.executeQuery();
 			if (rs != null) {
 			while (rs.next())  {
-				String title = rs.getString(1);
-				String author = rs.getString(2);
-				String category = rs.getString(3);
-				String bookId = rs.getString(4);
-				String price = rs.getString(5);
-				System.out.println(title + "\t" + author + "\t" + category + "\t" + bookId + "\t" + price);
+				book = new Book();
+				book.setBookId(rs.getInt("bookid"));
+			    book.setAuthor(rs.getString("author"));
+				book.setCategory(rs.getString("category"));
+				book.setTitle(rs.getString("title"));
+				book.setPrice(rs.getInt("price"));
 			}
-			rs.close();
+			
+			if (book == null)  {
+				throw new BookNotFoundException("Book not found with this id");
+			}
+	
 		}
-			else {
-		          throw new BookNotFoundException();
-			}
 		}
 		catch (SQLException e)  {
 			
 		}
-		return null;
+		finally  {
+			if (statement != null)
+				try {
+					statement.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			ModelDAO.closeConnection();
+
+		}
+		return book;
 	}
 
 	@Override
-	public boolean updateBook(int bookid, int price) {
+	public void updateBook(int bookId, int price) throws BookNotFoundException{
 		Connection connection = ModelDAO.openConnection();
-		PreparedStatement st = null;
+		PreparedStatement statement = null;
 		try {
-			st = connection.prepareStatement(updatePrice);
-	        st.setInt(1, price);
-	        st.setInt(2, bookid);
-	        st.execute();
-	        st.close();
+			statement = connection.prepareStatement(updatePrice);
+			statement.setInt(1, price);
+			statement.setInt(2, bookId);
+			int count = statement.executeUpdate();
+			if (count == 0)  {
+				throw new BookNotFoundException("Book not found with this id");
+			}
 		}
 		catch (SQLException e)  {
 			e.printStackTrace();
 		}
-        
-		return false;
+		finally  {
+			if (statement != null)  {
+				try {
+					statement.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				ModelDAO.closeConnection();
+			}
+		}	
 	}
 
 	@Override
 	public List<Book> getAllBooks() {
 		Connection connection = ModelDAO.openConnection();
-		PreparedStatement st = null;
+		PreparedStatement statement = null;
+		List<Book> bookList = new ArrayList<>();
 		try  {
-			st = connection.prepareStatement(getAllBooksQuery);
-			ResultSet rs = st.executeQuery();
+			statement = connection.prepareStatement(getAllBooksQuery);
+			ResultSet rs = statement.executeQuery();
 			while (rs.next())  {
 				String title = rs.getString(1);
 				String author = rs.getString(2);
 				String category = rs.getString(3);
-				String bookId = rs.getString(4);
-				String price = rs.getString(5);
-				System.out.println(title + "\t" + author + "\t" + category + "\t" + bookId + "\t" + price);
+				int bookId = rs.getInt(4);
+				int price = rs.getInt(5);
+				Book book = new Book(title, author, category, bookId, price);
+				bookList.add(book);
 			}
-			rs.close();
 		}
 		catch (SQLException e)  {
 			e.printStackTrace();
 		}
-		return null;
+		finally  {
+			if (statement != null)
+				try {
+					statement.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			ModelDAO.closeConnection();
+		}
+		return bookList;
 	}
 
 	@Override
 	public List<Book> getBookbyAuthor(String author) throws AuthorNotFoundException {
 		Connection connection = ModelDAO.openConnection();
-		PreparedStatement st = null;
+		PreparedStatement statement = null;
+		List<Book> bookList = new ArrayList<>();
 		try  {
-			st = connection.prepareStatement(getBookByAuthorQuery);
-			st.setString(1, author);
-			ResultSet rs = st.executeQuery();
-			if (rs != null) {
+			statement = connection.prepareStatement(getBookByAuthorQuery);
+			statement.setString(1, author);
+			ResultSet rs = statement.executeQuery();
 			while (rs.next())  {
 				String title = rs.getString(1);
 				String bookAuthor = rs.getString(2);
 				String category = rs.getString(3);
-				String bookId = rs.getString(4);
-				String price = rs.getString(5);
-				System.out.println(title + "\t" + bookAuthor + "\t" + category + "\t" + bookId + "\t" + price);
+				int bookId = rs.getInt(4);
+				int price = rs.getInt(5);
+				Book book = new Book(title, bookAuthor, category, bookId, price);
+				bookList.add(book);
 			}
-			rs.close();
-		}
-			else {
-		          throw new AuthorNotFoundException();
-			}
+	        if (bookList.isEmpty())  {
+	        	throw new AuthorNotFoundException("Book not found with this author name");
+	        }
+			
 		}
 		catch (SQLException e)  {
 			e.printStackTrace();
 		}
-		return null;
+		finally  {
+			if (statement != null)
+				try {
+					statement.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			ModelDAO.closeConnection();
+
+		}
+		return bookList;
 	}
 
 	@Override
 	public List<Book> getBookbycategory(String category) throws CategoryNotFoundException {
 		Connection connection = ModelDAO.openConnection();
-		PreparedStatement st = null;
+		PreparedStatement statement = null;
+		List<Book> bookList = new ArrayList<>();
 		try  {
-			st = connection.prepareStatement(getBookByCategoryQuery);
-			st.setString(1, category);
-			ResultSet rs = st.executeQuery();
-			if (rs != null) {
+			statement = connection.prepareStatement(getBookByCategoryQuery);
+			statement.setString(1, category);
+			ResultSet rs = statement.executeQuery();
 			while (rs.next())  {
 				String title = rs.getString(1);
 				String author = rs.getString(2);
 				String bookCategory = rs.getString(3);
-				String bookId = rs.getString(4);
-				String price = rs.getString(5);
-				System.out.println(title + "\t" + author + "\t" + bookCategory + "\t" + bookId + "\t" + price);
+				int bookId = rs.getInt(4);
+				int price = rs.getInt(5);
+				Book book = new Book(title, author, bookCategory, bookId, price);
+				bookList.add(book);
 			}
-			rs.close();
-		}
-			else {
-		          throw new CategoryNotFoundException();
+			if (bookList.isEmpty())  {
+				throw new CategoryNotFoundException("Book not found of this category");
 			}
 		}
 		catch (SQLException e)  {
 			e.printStackTrace();
 		}
-		return null;
+		finally  {
+			if (statement != null)
+				try {
+					statement.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			ModelDAO.closeConnection();
+
+		}
+		return bookList;
 	}
 
 }

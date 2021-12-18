@@ -14,9 +14,9 @@ import com.bookapp.exception.CategoryNotFoundException;
 public interface BookInter {
 	        //called by admin
 			void addBook(Book book);
-			boolean deleteBook(int bookid) throws BookNotFoundException;
-			Book getBookById(int bookid) throws BookNotFoundException;
-			boolean updateBook(int bookid,int price);
+			boolean deleteBook(int bookId) throws BookNotFoundException;
+			Book getBookById(int bookId) throws BookNotFoundException;
+			void updateBook(int bookId,int price) throws BookNotFoundException;
 			
 			// called by customer
 			List<Book> getAllBooks();

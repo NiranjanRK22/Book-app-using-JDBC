@@ -1,3 +1,7 @@
+/*Author : Niranjan
+version : 1.0
+date: 10/11/2021*/
+
 package com.bookapp.dao;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -23,10 +27,9 @@ public class ModelDAO {
 		}
 		
 		
-		String drivername = (String)properties.getProperty("drivername");
-		String url = (String)properties.getProperty("driver");
-		String username = (String)properties.getProperty("username");
-		String password = (String)properties.getProperty("password");
+		String url = properties.getProperty("driver");
+		String username = properties.getProperty("username");
+		String password = properties.getProperty("password");
 		connection = null;
 		
 		try {
@@ -34,7 +37,6 @@ public class ModelDAO {
 			connection = DriverManager.getConnection(url, username, password);
 		}
 		catch ( SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return connection;
@@ -45,7 +47,6 @@ public class ModelDAO {
 			if(connection!=null)
 			connection.close();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

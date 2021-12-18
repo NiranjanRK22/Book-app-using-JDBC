@@ -1,6 +1,7 @@
 package com.bookapp.main;
 
 import java.io.FileNotFoundException;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
@@ -17,86 +18,108 @@ import com.bookapp.exception.CategoryNotFoundException;
 import com.bookapp.bean.Book;
 import com.bookapp.dao.BookImpl;
 import com.bookapp.dao.BookInter;
+/*Author : Niranjan
+version : 1.0
+date: 10/11/2021*/
 
 public class Client {
 
-	public static void main(String[] args) throws AuthorNotFoundException, BookNotFoundException, CategoryNotFoundException {
-		//String createtablequery = "create table book(title varchar(20), author varchar(20), category varchar(20), bookid integer, price integer)";
+	public static void main(String[] args)
+			throws AuthorNotFoundException, BookNotFoundException, CategoryNotFoundException {
+		
 		Properties properties = new Properties();
-		try  {
+		try {
 			properties.load(new FileReader("jdbc.properties"));
-		}
-		catch (FileNotFoundException e1)  {
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		catch (IOException e1)  {
-			e1.printStackTrace();
+
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Select the operation to be performed");
+		System.out.println(
+				"1: Add Book 2.Update Book 3.Delete Book 4.View Book by id 5. View all the books 6. View Books by author 7.View books by category");
+		int choice = sc.nextInt();
+		BookInter bookInter = new BookImpl();
+		switch (choice) {
+		case 1:
+			for (int i = 0; i < 2; i++) {
+				Book book = new Book();
+				System.out.println("Enter title: ");
+				String title = sc.next();
+				book.setTitle(title);
+				System.out.println("Enter author: ");
+				String author = sc.next();
+				book.setAuthor(author);
+				System.out.println("Enter category: ");
+				String category = sc.next();
+				book.setCategory(category);
+				System.out.println("Enter book id: ");
+				int bookId = sc.nextInt();
+				book.setBookId(bookId);
+				System.out.println("Enter price: ");
+				int price = sc.nextInt();
+				book.setPrice(price);
+				bookInter.addBook(book);
+			}
+			System.out.println("Book added successfully");
+			break;
+		case 2:
+			try {
+				System.out.println("Enter the Book id to update: ");
+				int bookIdToUpdate = sc.nextInt();
+				System.out.println("Enter the price");
+				int price = sc.nextInt();
+				bookInter.updateBook(bookIdToUpdate, price);
+			} catch (BookNotFoundException e) {
+				System.out.println(e.getMessage());
+			}
+			break;
+
+		case 3:
+			try {
+				System.out.println("Enter the Book id to delete the record: ");
+				int bookIdToDelete = sc.nextInt();
+				bookInter.deleteBook(bookIdToDelete);
+				System.out.println("Book deleted successfully");
+			} catch (BookNotFoundException e) {
+				System.out.println(e.getMessage());
+			}
+			break;
+		case 4:
+			try {
+				System.out.println("Enter the Book Id: ");
+				int bookId = sc.nextInt();
+				System.out.println(bookInter.getBookById(bookId));
+			} catch (BookNotFoundException e) {
+				System.out.println(e.getMessage());
+			}
+			break;
+		case 5:
+			bookInter.getAllBooks().forEach(System.out::println);
+			break;
+		case 6:
+			try {
+				System.out.println("Enter author: ");
+				String author = sc.next();
+				bookInter.getBookbyAuthor(author).forEach(System.out::println);
+			} catch (AuthorNotFoundException e) {
+				System.out.println(e.getMessage());
+			}
+			break;
+		case 7:
+			try {
+				System.out.println("Enter category: ");
+				String category = sc.next();
+				bookInter.getBookbycategory(category).forEach(System.out::println);
+			} catch (CategoryNotFoundException e) {
+				System.out.println(e.getMessage());
+			}
 		}
-//		String url = (String)properties.getProperty("driver");
-//		String username = (String)properties.getProperty("username");
-//		String password = (String)properties.getProperty("password");
-		//String sql = "create table student(studname varchar(20), studid integer, age integer)";
-//        Connection connection = null;
-//        PreparedStatement statement = null;
-//        try  {
-//        	Class.forName("com.mysql.jdbc.Driver").newInstance();
-//        	connection = DriverManager.getConnection(url, username, password);
-//            statement = connection.prepareStatement(createtablequery);
-//            statement.execute();
-//        	
-//        }
-//        catch(InstantiationException | IllegalAccessException | ClassNotFoundException e)  {
-//        	e.printStackTrace();
-//        }
-//        catch (SQLException e) {
-//        	e.printStackTrace();
-//        }
-//        finally  {
-//        	try {
-//        		if (statement != null)
-//        		statement.close();
-//        		if (connection != null)
-//				connection.close();
-//			} catch (SQLException e) {
-//				e.printStackTrace();
-//			}
-//        }
-          
-        BookInter bookInter = new BookImpl();
-        Scanner sc = new Scanner(System.in);
-//        for (int i=0; i<5; i++)  {
-//        	Book book = new Book();
-//            System.out.println("Enter title: ");
-//            String title = sc.next();
-//            book.setTitle(title);
-//            System.out.println("Enter author: ");
-//            String author = sc.next();
-//            book.setAuthor(author);
-//            System.out.println("Enter category: ");
-//            String category = sc.next();
-//            book.setCategory(category);
-//            System.out.println("Enter book id: ");
-//            int bookId = sc.nextInt();
-//            book.setBookid(bookId);
-//            System.out.println("Enter price: ");
-//            int price = sc.nextInt();
-//            book.setPrice(price);
-//            bookInter.addBook(book);
-//        }
-        //System.out.println("Enter the Book id to delete the record: ");
-        //int bookIdToDelete = sc.nextInt();
-       //bookInter.deleteBook(bookIdToDelete);
-        
-//        System.out.println("Enter the Book Id: ");
-//        int bookId = sc.nextInt();
-//        bookInter.getBookById(bookId);
-          
-//        System.out.println("Enter the Book id to update: ");
-//        int bookIdToUpdate = sc.nextInt();
-//        System.out.println("Enter the price");
-//        int price = sc.nextInt();
-//        bookInter.updateBook(bookIdToUpdate, price);
-       bookInter.getAllBooks();
+
+		sc.close();
+
 	}
 
 }
